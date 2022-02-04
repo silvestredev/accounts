@@ -6,19 +6,20 @@ const fs = require('fs');
 
 operation();
 
-function operation() {
-    inquirer.prompt([
+function operation() { // criando a func principal do sistema
+    inquirer.prompt([ // prompt tipo lista com 5 escolhas
         {
             type: 'list',
             name: 'action',
             message: 'O que você deseja fazer?',
-            choices: ['Criar Conta', 'Consultar Saldo', 'Depositar', 'Sacar', 'Sair'],
+            choices: ['Criar Conta', 'Consultar Saldo', 'Depositar', 'Sacar', 'Pagar Fatura', 'Sair'],
         },
     ])
     .then((answer) => { //esperar uma resposta do usuário para trabalhar com ela
         const action = answer['action']; //variável que armazena a ação do usuário.
 
-        if(action === 'Criar Conta'){
+        // if para tratar as escolhas do usuário 
+        if(action === 'Criar Conta'){ 
             createAccount();
         } else if(action === 'Consultar Saldo'){
             getAccountBalance();
@@ -26,6 +27,8 @@ function operation() {
             deposit();
         } else if(action === 'Sacar'){
             widthdraw();
+        } else if (action === 'Pagar Fatura'){
+            fatura();
         } else if(action === 'Sair'){
             console.log(chalk.blue('Obrigado por usar o accounts!'));
             process.exit(); // encerra o programa
@@ -219,4 +222,48 @@ function removeAmount(accountName, amount){
     console.log(chalk.green(`Foi realizado um saque de R$${amount} da sua conta!`));
     operation();
 
-}
+};
+
+
+function fatura(){
+    inquirer.prompt([
+        {
+            name:'accountName', message: 'Qual o nome da sua conta?'
+        },
+    ])
+    .then((answer) => {
+        const accountName = answer['accountName'];
+        if(!checkAccount(accountName)){
+            return fatura();
+        };
+        
+
+        inquirer.prompt([
+            {
+                name:'value', message: 'Quanto você deseja pagar?'
+            }
+        ]).then((answer) => {
+            const value = answer['value'];
+
+            pagarFatura(accountName, value);
+            operation();
+        })
+    })
+    .catch(err => console.log(err))
+    .catch(err => console.log(err));
+};
+
+function pagarFatura(accountName, value){
+    const accountData = getAccount(accountName);
+
+    if(!value){
+        console.log(chalk.bgRed('Ocorreu um erro, tente novamente mais tarde!'));
+        return fatura();
+    }
+
+    accountData.balance = parseFloat(accountData.balance) - parseFloat(value);
+    fs.writeFileSync(`accounts/${accountName}.json`, JSON.stringify(accountData), err => console.log(err));
+
+    console.log(chalk.green(`Foi descontado um valor de R$${value} na sua conta!`));
+};
+
