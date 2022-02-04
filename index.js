@@ -212,6 +212,7 @@ function removeAmount(accountName, amount){
 
     if(accountData.balance < amount) {
         console.log(chalk.bgRed('Valor indisponível!'));
+        return operation()
     };
 
 
@@ -235,9 +236,7 @@ function fatura(){
         const accountName = answer['accountName'];
         if(!checkAccount(accountName)){
             return fatura();
-        };
-        
-
+        };        
         inquirer.prompt([
             {
                 name:'value', message: 'Quanto você deseja pagar?'
@@ -254,15 +253,15 @@ function fatura(){
 };
 
 function pagarFatura(accountName, value){
-    const accountData = getAccount(accountName);
+    const accountData = getAccount(accountName); //lendo o arquivo no 'banco de dados'
 
-    if(!value){
+    if(!value){ //caso haja algum erro
         console.log(chalk.bgRed('Ocorreu um erro, tente novamente mais tarde!'));
         return fatura();
     }
 
-    accountData.balance = parseFloat(accountData.balance) - parseFloat(value);
-    fs.writeFileSync(`accounts/${accountName}.json`, JSON.stringify(accountData), err => console.log(err));
+    accountData.balance = parseFloat(accountData.balance) - parseFloat(value); // subtraindo o valor encontrado no arquivo .JSON (balance) pelo valor 'pago' pelo usuario ('value'); parseFloat = transformar em numeros decimais;
+    fs.writeFileSync(`accounts/${accountName}.json`, JSON.stringify(accountData), err => console.log(err)); // lendo o arquivo .json e transformando em string
 
     console.log(chalk.green(`Foi descontado um valor de R$${value} na sua conta!`));
 };
